@@ -12,44 +12,58 @@ async function main() {
 
 	router.get('/get', h3.eventHandler(async event => {
 		h3.setResponseHeader(event, 'Cache-Control', 'private, max-age=0, must-revalidate');
+		const query = h3.getQuery(event);
 
 		//#region Auth
 		let authed: boolean | null = null;
 		let authedBy: string | null = null;
 
-		// Cookie: auth=ok|ng
-		const cookieAuth = h3.getCookie(event, 'auth');
+		// /get?type=cookie => Cookie: auth=ok|ng
+		if (query.type === 'cookie') {
+			h3.appendResponseHeader(event, 'Vary', 'cookie');
 
-		// authorization: bearer ok|ng 
-		const authorization = h3.getHeader(event, 'authorization');
-		const m = authorization?.match(/^bearer\s+(.*)/i);
-		const authorizationBearer = m?.[1];
+			const cookieAuth = h3.getCookie(event, 'auth');
+
+			if (cookieAuth?.includes('ok')) {
+				authed = true;
+				authedBy = 'cookie';
+			} else if (cookieAuth?.includes('ng')) {
+				authed = false;
+				authedBy = 'cookie';
+			}
+		}
+
+		// /get?type=auth => authorization: bearer ok|ng 
+		if (query.type === 'auth') {
+			h3.appendResponseHeader(event, 'Vary', 'authorization');
+
+			const authorization = h3.getHeader(event, 'authorization');
+			const m = authorization?.match(/^bearer\s+(.*)/i);
+			const authorizationBearer = m?.[1];
+
+			if (authorizationBearer?.includes('ok')) {
+				authed = true;
+				authedBy = 'authorization';
+			} else if (authorizationBearer?.includes('ng')) {
+				authed = false;
+				authedBy = 'authorization';
+			}
+		}
 
 		// x-auth: ok|ng
+		/*
 		const xauth = h3.getHeader(event, 'x-auth');
 
-		h3.appendResponseHeader(event, 'Vary', 'authorization');
-
-		// check
-		if (cookieAuth?.includes('ok')) {
-			authed = true;
-			authedBy = 'cookie';
-		} else if (cookieAuth?.includes('ng')) {
-			authed = false;
-			authedBy = 'cookie';
-		} else if (authorizationBearer?.includes('ok')) {
-			authed = true;
-			authedBy = 'authorization';
-		} else if (authorizationBearer?.includes('ng')) {
-			authed = false;
-			authedBy = 'authorization';
-		} else if (xauth?.includes('ok')) {
-			authed = true;
-			authedBy = 'xauth';
-		} else if (xauth?.includes('ng')) {
-			authed = false;
-			authedBy = 'xauth';
+		if (xauth) {
+			if (xauth?.includes('ok')) {
+				authed = true;
+				authedBy = 'xauth';
+			} else if (xauth?.includes('ng')) {
+				authed = false;
+				authedBy = 'xauth';
+			}
 		}
+		*/
 
 		// ng
 		if (authed === false) {
@@ -64,6 +78,14 @@ async function main() {
 
 		return {
 			authed, authedBy,
+			headers: h3.getRequestHeaders(event),
+		};
+	}));
+
+	router.get('/post', h3.eventHandler(async event => {
+		h3.setResponseHeader(event, 'Cache-Control', 'private, max-age=0, must-revalidate');
+
+		return {
 			headers: h3.getRequestHeaders(event),
 		};
 	}));
