@@ -10,7 +10,7 @@ async function main() {
 		console.log(`Request ${event.req.url}`);
 	}));
 
-	router.get('/', h3.eventHandler(async event => {
+	router.get('/get', h3.eventHandler(async event => {
 		h3.setResponseHeader(event, 'Cache-Control', 'private, max-age=0, must-revalidate');
 
 		//#region Auth
@@ -27,6 +27,8 @@ async function main() {
 
 		// x-auth: ok|ng
 		const xauth = h3.getHeader(event, 'x-auth');
+
+		h3.appendResponseHeader(event, 'Vary', 'authorization');
 
 		// check
 		if (cookieAuth?.includes('ok')) {
@@ -55,7 +57,7 @@ async function main() {
 		}
 
 		// ok
-		if (authed === true) {
+		if (authed === null) {
 			h3.setResponseHeader(event, 'Cache-Control', 'public, max-age=10');
 		}
 		//#endregion Auth
