@@ -13,6 +13,7 @@ async function main() {
 	router.get('/none', h3.eventHandler(async event => {
 		return {
 			headers: h3.getRequestHeaders(event),
+			query: h3.getQuery(event),
 		};
 	}));
 
@@ -85,6 +86,7 @@ async function main() {
 		return {
 			authed, authedBy,
 			headers: h3.getRequestHeaders(event),
+			query: h3.getQuery(event),
 		};
 	}));
 
@@ -104,6 +106,7 @@ async function main() {
 
 		return {
 			headers: h3.getRequestHeaders(event),
+			query: h3.getQuery(event),
 		};
 	}));
 
