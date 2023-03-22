@@ -7,7 +7,13 @@ async function main() {
 	const router = h3.createRouter();
 
 	app.use(h3.eventHandler(async event => {
-		console.log(`Request ${event.req.url}`);
+		console.log(`Request ${event.node.req.url}`);
+	}));
+
+	router.get('/none', h3.eventHandler(async event => {
+		return {
+			headers: h3.getRequestHeaders(event),
+		};
 	}));
 
 	router.get('/get', h3.eventHandler(async event => {
@@ -82,13 +88,26 @@ async function main() {
 		};
 	}));
 
-	router.get('/post', h3.eventHandler(async event => {
+	router.post('/post', h3.eventHandler(async event => {
 		h3.setResponseHeader(event, 'Cache-Control', 'private, max-age=0, must-revalidate');
 
 		return {
 			headers: h3.getRequestHeaders(event),
 		};
 	}));
+
+	router.post('/setcookie', h3.eventHandler(async event => {
+		h3.setResponseHeader(event, 'Cache-Control', 'private, max-age=0, must-revalidate');
+		h3.setCookie(event, 'key', new Date().getTime().toString(), {
+			path: '/',
+		});
+
+		return {
+			headers: h3.getRequestHeaders(event),
+		};
+	}));
+
+
 
 	app.use(router);
 
