@@ -98,7 +98,7 @@ async function main() {
 		};
 	}));
 
-	router.post('/setcookie', h3.eventHandler(async event => {
+	router.get('/setcookie', h3.eventHandler(async event => {
 		h3.setResponseHeader(event, 'Cache-Control', 'private, max-age=0, must-revalidate');
 		h3.setCookie(event, 'key', new Date().getTime().toString(), {
 			path: '/',
@@ -110,7 +110,18 @@ async function main() {
 		};
 	}));
 
+	router.get('/setcookie-none', h3.eventHandler(async event => {
+		// no Cache-Control
 
+		h3.setCookie(event, 'key', new Date().getTime().toString(), {
+			path: '/',
+		});
+
+		return {
+			headers: h3.getRequestHeaders(event),
+			query: h3.getQuery(event),
+		};
+	}));
 
 	app.use(router);
 
